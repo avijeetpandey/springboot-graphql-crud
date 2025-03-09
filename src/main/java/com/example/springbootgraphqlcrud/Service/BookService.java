@@ -6,6 +6,10 @@ import com.example.springbootgraphqlcrud.Repositories.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 @Service
 public class BookService {
     @Autowired
@@ -28,5 +32,72 @@ public class BookService {
         savedBookDto.setId(savedBook.getId());
 
         return savedBookDto;
+    }
+
+    public Boolean deleteById(Long id) {
+        // check if the book exists in the first place before deleting
+        Optional<Book> optionalBook = bookRepository.findById(id);
+
+        if(optionalBook.isPresent()) {
+            bookRepository.deleteById(id);
+            return true;
+        }
+
+        return false;
+    }
+
+    public BookDto findById(Long id) {
+        Optional<Book> optionalBook = bookRepository.findById(id);
+
+        if(optionalBook.isPresent()) {
+            Book book = optionalBook.get();
+            BookDto bookDto = new BookDto();
+
+            bookDto.setId(book.getId());
+            bookDto.setAuthor(book.getAuthor());
+            bookDto.setTitle(book.getTitle());
+            bookDto.setPrice(book.getPrice());
+
+            return bookDto;
+        }
+
+        return null;
+    }
+
+    public List<BookDto> findAll() {
+        List<Book> books = bookRepository.findAll();
+        List<BookDto> bookDtos = new ArrayList<>();
+
+        books.forEach(book -> {
+            BookDto bookDto = new BookDto();
+            bookDto.setId(book.getId());
+            bookDto.setAuthor(book.getAuthor());
+            bookDto.setTitle(book.getTitle());
+            bookDto.setPrice(book.getPrice());
+
+            bookDtos.add(bookDto);
+        });
+
+        return bookDtos;
+    }
+
+    public BookDto update(BookDto bookDto) {
+        Optional<Book> optionalBook = bookRepository.findById(bookDto.getId());
+        if(optionalBook.isPresent()) {
+            Book book = optionalBook.get();
+
+            book.setTitle(bookDto.getTitle());
+            book.setAuthor(bookDto.getAuthor());
+            book.setPrice(bookDto.getPrice());
+
+            Book savedBook = bookRepository.save(book);
+
+            return new BookDto(savedBook.getId(),
+                               savedBook.getAuthor(),
+                               savedBook.getTitle(),
+                               savedBook.getPrice());
+        }
+
+        return null;
     }
 }
